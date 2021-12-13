@@ -34,11 +34,13 @@ newtick = false
 tick_response = 0
 tttt = 0
 sylaudio = 0
+anybtn = false
+closestfruit = 0
+bubbles_xoffset = 8
 
 function _init()
 	
 end
-
 
 
 function _update60()
@@ -54,7 +56,7 @@ function _update60()
 
 	tick = stat(50) + statloops * statcap
 	tickf = newtick and tick or tickf + 1/60 
-
+	anybtn = btnp(0) or btnp(1) or btnp(2) or btnp(3) or btnp(4) or btnp(5)
 
 	update_conductor()
 
@@ -97,8 +99,8 @@ function _update60()
 		printh(pos)
 		ifruit = arr_basket_show[pos]
 
-		beatpos = 0
-		for i = 1, pos do
+		beatpos = 1
+		for i = 1, pos - 1 do
 			f = currentfruits[arr_basket_show[i]]
 			beatpos = beatpos + #f.syllables
 		end
@@ -122,7 +124,7 @@ function _update60()
 	end	
 
 	-- scratch!
-	if btnp(5) then
+	if anybtn then
 		tscratch = 0
 		tcatanim = 0
 
@@ -136,24 +138,29 @@ function _update60()
 
 			if diff < tickfl and abs(diff) > 8 then
 				b = b + 16
-				printh("dddd")
+				-- printh("dddd")
 			end
 
 			diff = b - tickfl
 
 			printh("b " .. b)
-			printh("hit! " .. diff)
+			
+			
+			closestfruit = 1
+			for i = 1, #bubblefruits do
+				f1 = bubblefruits[i]
+				f2 = bubblefruits[closestfruit]
+				if abs(f1.beat - b) < abs(f2.beat - b) then
+					closestfruit = i
+				end
+			end
+
 			absdiff = abs(diff)
-			if absdiff < 1 then
+
+			if absdiff < 1 then -- hit correctly
+				printh("hit! " .. diff)
 				arr_basket_beats_results[nextbeat] = true
-
-
-				-- for i = 1, #bubblefruits do
-				-- 	f = bubblefruits[i]
-				-- 	if f.beat == b then
-				-- 		f.tglow = 0.1
-				-- 	end
-				-- end
+				bubblefruits[closestfruit].tglow = 0.1
 
 			elseif absdiff < 7 then
 				printh("smallmiss.." .. diff)
@@ -292,7 +299,8 @@ function _draw()
 	if tscratch >= 0 then
 		sprnum = flr(tscratch)
 		sprind = 149 + sprnum * 2
-		spr(sprind, 25, 58, 2, 3)
+		xscratch = 13 + (closestfruit - 1) * bubbles_xoffset
+		spr(sprind, xscratch, 58, 2, 3)
 	end
 
 	-- scratch cat anim
@@ -309,7 +317,9 @@ function _draw()
 
 	-- frog
 	altrender(true)
-	spr(144, 8 * 8, 3 * 8, 2, 2)
+	openmouth = calltime == true and tick % 4 == 0 
+	sprfrog = openmouth == true and 146 or 144
+	spr(sprfrog, 8 * 8, 3 * 8, 2, 2)
 	altrender(false)
 
 	-- bowl back
@@ -317,6 +327,7 @@ function _draw()
 	ybowl = 128 - 2 * 8
 	ovalfill(xbowl + 2, ybowl, xbowl + 6 * 8 - 2, ybowl + 4, 1)
 
+	-- fruits
 	drawfruits()
 	
 	-- bowl front
@@ -328,6 +339,11 @@ function _draw()
 	if tickl % 4 < 1 then yrabbit = yrabbit + 1 end
 	spr(199, 100, yrabbit, 4,4)
 	altrender(false)
+
+	-- bubble
+	-- t = (sin(time()) + 1) * 5
+	-- r = t
+	-- drawbubble(25, 25, r)
 
 
 	-- result squares
@@ -368,6 +384,17 @@ function _draw()
 
 
 	
+end
+
+function drawbubble(x, y, r)
+	
+	circ(x, y, r, 12) -- inner circle
+	circ(x, y, r + 1, 7) -- outer circle
+
+	-- specular highlight
+	sx = x - r * 0.5
+	sy = y - r * 0.5
+	rectfill(sx, sy, sx + 1, sy + 1, 7)
 end
 
 function altrender(set)
@@ -416,36 +443,54 @@ end
 
 function bubblefruit(fruit, position, beat)
 	bubblefruits[#bubblefruits + 1] = {
-		y0 = ybubble0, -- initial ypos
-		x = 16 + position * 8,
-		y = ybubble0,
+		x0 = 16 + position * bubbles_xoffset, 
+		y0 = ybubble0 + (position % 2) * 2 , -- initial ypos
+		x = 16 + position * bubbles_xoffset,
+		y = ybubble0 + (position % 2) * 2,
 		data = fruit,
 		position = position,
 		sptick = tick + 16 - 4,
 		tick = tick + 16,
 		beat = beat,
+		pstart = 0,
 		toffset = 0,
 		tglow = 0
 	}
 end
 
+
+
 function updatefruits()
+	local xfrog = 66
+	local yfrog = 32
+
 	for i = 1, #bubblefruits do
+
 		f = bubblefruits[i]
+
+		-- initial animation
+		if f.pstart < 1 then
+			f.pstart = f.pstart + 3/60
+			f.x = lerpoutbacksoft(xfrog, f.x0, f.pstart)
+			f.y = lerp(yfrog, f.y0, f.pstart)
+		end
+
+
+		-- falling animation
 		if(tick >= f.sptick) then
 			f.toffset = f.toffset + 1/60
 			f.y = f.y0 + f.toffset * f.toffset * 50 + f.toffset * 25
 		end
 
+		-- glow animation when hit
 		if f.tglow > 0 then
 			f.tglow = f.tglow - 1/60
 		else
 			f.tglow = 0
 		end
 	end
-	 
-
 end	
+
 function drawfruits()
 
 	-- conveyor belt fruit
@@ -464,18 +509,26 @@ function drawfruits()
 
 
 		if f.tglow > 0 then
-			pal(f.data.maincolor, 7)
-		end
+			for c = 1, 15 do
+				pal(c, 7)
+			end
+		end --
 		spr(data.sprite, x, y, data.size.x, data.size.y)
-		pal(f.data.maincolor, f.data.maincolor)
+		pal()
 
 		-- bubble
 		
-		if f.toffset < 0.15 then
-			bubblespr = data.size.x == 1 and 37 or 39
-			tilesize = data.size.x == 1 and 2 or 3
+		tilesize = data.size.x == 1 and 2 or 3
 
-			if f.toffset > 0.11 then
+
+		if f.pstart < 1 then
+			rbubble = lerpoutback(1, data.size.x * 6, f.pstart)
+			drawbubble(f.x, f.y, rbubble)
+		elseif f.toffset < 0.15 then
+			bubblespr = data.size.x == 1 and 37 or 39
+
+			-- explosion anims
+			if f.toffset > 0.11 then 
 				bubblespr = 92
 				tilesize = 4
 			elseif f.toffset > 0.08 then
@@ -488,16 +541,17 @@ function drawfruits()
 			spr(
 				bubblespr, 
 				f.x - tiledifx * 4 - data.size.x * 4, 
-				f.y0 - tiledify * 4 - data.size.y * 4, 
+				f.y - tiledify * 4 - data.size.y * 4, 
 				tilesize, 
 				tilesize
 			)
-		end	
+		end
+
+		-- debug
+		-- print(f.beat, f.x, f.y, 7)
 	end	
 end
 
--->8
--- rs is results
 function textfruit(ff, row, rs)
 
 	arr = ff.syllables
@@ -881,6 +935,34 @@ function get_speed(sfx)
   return peek(0x3200 + 68*sfx + 65)
 end
 
+-->8
+-- utils
+
+function lerp(a,b,t)
+	return (1-t)*a + t*b;
+end
+
+function lerpquad(a,b,t)
+	t = 1-(1-t)*(1-t)
+	return (1-t)*a + t*b;
+end
+
+function lerpcubic(a,b,t)
+	t = 1-(1-t)*(1-t)*(1-t)
+	return (1-t)*a + t*b;
+end
+
+function lerpoutbacksoft(a,b,t)
+	t = (1 - t * 1.15)
+	t = 1.02 * (1 - t * t)
+	return (1-t)*a + t*b;
+end
+
+function lerpoutback(a,b,t)
+	t = (1 - t * 1.333)
+	t = 1.125 * (1 - t * t)
+	return (1-t)*a + t*b;
+end
 
 
 -->8
@@ -907,7 +989,7 @@ fruits =
 		slicedsprite = 22,
 		bottom = 0,
 		notes = {1},
-		maincolor = 1
+		maincolor = 13
 	},
 	apple = {
 		name = "apple",
