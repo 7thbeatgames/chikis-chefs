@@ -95,7 +95,14 @@ function _update60()
 		--printh(arr_basket_show)
 		printh(pos)
 		ifruit = arr_basket_show[pos]
-		beat = arr_basket_beats[pos]
+
+		beatpos = 0
+		for i = 1, pos do
+			f = currentfruits[arr_basket_show[i]]
+			beatpos = beatpos + #f.syllables
+		end
+
+		beat = arr_basket_beats[beatpos]
 		f = currentfruits[ifruit]
 		bubblefruit(f, pos, beat)
 	end
@@ -123,7 +130,16 @@ function _update60()
 		if nextbeat <= #arr_basket_beats_show then
 
 			b = arr_basket_beats_show[nextbeat]
-			diff = b - tickf % 16
+			tickfl = tickf % 16
+			diff = b - tickfl
+
+			if diff < tickfl and abs(diff) > 8 then
+				b = b + 16
+				printh("dddd")
+			end
+
+			diff = b - tickfl
+
 			printh("b " .. b)
 			printh("hit! " .. diff)
 			absdiff = abs(diff)
@@ -134,7 +150,7 @@ function _update60()
 				-- for i = 1, #bubblefruits do
 				-- 	f = bubblefruits[i]
 				-- 	if f.beat == b then
-				-- 		f.x = 1000
+				-- 		f.tglow = 0.1
 				-- 	end
 				-- end
 
@@ -380,7 +396,8 @@ function bubblefruit(fruit, position, beat)
 		sptick = tick + 16 - 4,
 		tick = tick + 16,
 		beat = beat,
-		toffset = 0
+		toffset = 0,
+		tglow = 0
 	}
 end
 
@@ -389,7 +406,13 @@ function updatefruits()
 		f = bubblefruits[i]
 		if(tick >= f.sptick) then
 			f.toffset = f.toffset + 1/60
-			f.y = f.y0 + f.toffset * f.toffset * 170 + f.toffset * 25
+			f.y = f.y0 + f.toffset * f.toffset * 50 + f.toffset * 25
+		end
+
+		if f.tglow > 0 then
+			f.tglow = f.tglow - 1/60
+		else
+			f.tglow = 0
 		end
 	end
 	 
@@ -411,7 +434,12 @@ function drawfruits()
 		x = f.x - data.size.x * 4
 		y = f.y - data.size.y * 4
 
+
+		if f.tglow > 0 then
+			pal(f.data.maincolor, 7)
+		end
 		spr(data.sprite, x, y, data.size.x, data.size.y)
+		pal(f.data.maincolor, f.data.maincolor)
 
 		-- bubble
 		
