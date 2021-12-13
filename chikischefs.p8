@@ -33,6 +33,7 @@ bbeats = ""
 newtick = false
 tick_response = 0
 tttt = 0
+sylaudio = 0
 
 function _init()
 	
@@ -256,8 +257,34 @@ function _draw()
 			if bstat + 1 >= arr_basket_beats_show[j] then
 				sylaudio = j
 			end	
+		end
+
+
+
+
+		word_results = {}
+		
+		-- render text on blackboard
+		for j = 1, #f.notes do
+			if calltime then -- call time
+
+				result_int = sylaudio - sylcount >= j and 2 or 0
+				add(word_results, result_int)
+
+			else -- response time
+				
+				results_index = sylcount + j 
+				if results_index <= #arr_basket_beats_results then
+					result = arr_basket_beats_results[results_index]
+					result_int = result == true and 2 or 1
+					add(word_results, result_int)
+				else
+					add(word_results, 0)
+				end
+			end
 		end	
-		textfruit(f, i - 1, sylaudio - sylcount)
+
+		textfruit(f, i - 1, word_results)
 		sylcount = sylcount + #f.notes
 	end
 
@@ -375,6 +402,7 @@ function printdebug()
 	print("round "..round)
 	print("tick " .. tick)
 	print("tickf ".. tickf)
+	print("sylaudio ".. sylaudio)
 
 end
 
@@ -469,8 +497,8 @@ function drawfruits()
 end
 
 -->8
--- s is syllable
-function textfruit(ff, row, s)
+-- rs is results
+function textfruit(ff, row, rs)
 
 	arr = ff.syllables
 
@@ -494,7 +522,14 @@ function textfruit(ff, row, s)
 		end	
 
 		-- determine syllable color
-		textcolor = (i < s + 1) and 10 or 7
+		textcolor = 7
+		result = rs[i]
+		if result == 1 then -- miss
+			textcolor = 8
+		elseif result == 2 then -- hit
+			textcolor = 11
+		end
+
 
 		-- print syllable
 		print(syllable, 
