@@ -524,7 +524,8 @@ startbeats_b = {0,6,12}
 intro_patterns = 1 -- 4 beats of drum intro
 
 function update_conductor()
-	--54 is music pattern
+	--54 is music pattern: 0 is intro, odd numbers are calls and even are responses
+	-- 0 [12] [34] [56] [78] || [9 10] [11 12] ..
 	--calltime = (stat(54) - intro_patterns)%2 == 0
 
 	local sm = stat(54)-1
@@ -553,7 +554,6 @@ function update_conductor()
 	end
 
 	calltime = music_state == mstate.call
-
 
 	tickl = stat(50) //tick but looping. use first channel as reference pos (cause it doesnt loop)
 	beatnumber = tickl\4
@@ -730,7 +730,7 @@ function generate_fruit_basket(forcedfruit, _is_new_basket, _basketsize) --give 
 		if (_is_new_basket == false and equal_arrays)
 		then reroll = true end
 
-		--reroll if there's a rest in a side b
+		--reroll if there's a rest in side b
 		if (music_side_prebar == mside.b and rest_num > 0) then reroll = true end
 
 		-- reroll if more than 1 rest
@@ -751,7 +751,6 @@ end
 
 function generate_beats_from_basket() --arr_basket unboxing to give array of beats
 	arr_basket_beats = {}
-	
 
 	for i = 1,#arr_basket do -- cause sub is 1-indexed!
 		--printh("str basket is " .. arr_basket)
