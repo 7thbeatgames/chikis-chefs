@@ -252,6 +252,7 @@ function play_update()
 
 
 	-- scratch!
+
 	if anybtn and gameover == false then
 		tscratch = 0
 		tcatanim = 0
@@ -259,7 +260,17 @@ function play_update()
 		nextbeat = #arr_basket_beats_results + 1
 
 		-- check beats
-		if nextbeat <= #arr_basket_beats_show then
+
+		--but first , check if should ignore the scratch
+		local shouldcount = true
+
+		printh(tickl)
+
+		if (music_state == mstate.call and ( tickl > 1 or tickl < 14))
+		then shouldcount = false end
+
+
+		if nextbeat <= #arr_basket_beats_show and shouldcount then
 
 			b = arr_basket_beats_show[nextbeat]
 
