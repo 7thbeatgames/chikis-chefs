@@ -44,7 +44,7 @@ last=0
 tick = 0  -- is stat(50) but always increasing
 tickl = 0 -- is stat(50)
 tickf = 0 -- is tick but interpolated
-input_offset = -3
+input_offset = -0.3
 
 statloops = -1
 statprev =0
@@ -116,8 +116,8 @@ function _update60()
 			playing = true
 		end
 
-		if btnp(0) then input_offset -= 1 end
-		if btnp(1) then input_offset += 1 end
+		if btnp(0) then input_offset -= 0.1 end
+		if btnp(1) then input_offset += 0.1 end
 
 	end	
 
@@ -274,7 +274,7 @@ function play_update()
 
 			b = arr_basket_beats_show[nextbeat]
 
-			local tickf_adj = tickf - input_offset / 10.0 --i.e. negative means you get to hit earlier
+			local tickf_adj = tickf - input_offset --i.e. negative means you get to hit earlier
 
 			tickfl = tickf_adj % 16
 			diff = b - tickfl
@@ -495,7 +495,7 @@ function _draw()
 	elseif playing == false then
 		print("chiki's chefs", 62,62, 7)
 		print("press ❎ to\n   start", 66,72, 10)
-		print("offset:\n⬅️ ".. (input_offset/10.0) .. " ➡️",62,87, 7)
+		print("offset:\n⬅️ ".. flr(input_offset*0.133333333*1000) .. "ms ➡️",62,87, 7)
 		hiscore = dget(0)
 		if hiscore == 32 then
 			color = time() % 1.0 < 0.5 and 10 or 9
