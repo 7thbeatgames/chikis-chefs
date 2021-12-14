@@ -950,6 +950,12 @@ function update_conductor()
 			arr_basket_show[i] = arr_basket[i]
 		end
 
+
+		if (allwon_prebar) then
+			tgameover = time()
+			allwon = true
+			music (-1)
+		end
 	end
 
 	-- if in first half of call pattern, refresh response flag
@@ -1002,9 +1008,8 @@ function update_conductor()
 		if level ~= prev_level then
 
 			if level > #fruitlevels then -- there's no more levels, you won!
-				music(-1)
-				allwon = true
-				tgameover = time()
+				--music(-1)
+				allwon_prebar = true --makes allwon true on next bar 
 			else
 				printh("new level!")
 				is_new_level = true
