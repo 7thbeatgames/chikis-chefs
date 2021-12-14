@@ -1,7 +1,27 @@
-pico-8 cartridge // http://www.pico-8.com
+luapico-8 cartridge // http://www.pico-8.com
 version 34
 __lua__
 
+
+-- consts
+lost = 0
+win = 1
+perfect = 2
+
+-- vars
+endingtype = 0 
+
+function _init()
+	params = stat(6)
+
+	if params == "perfect" then
+		endingtype = perfect
+	else 
+		endingtype = win
+	end
+
+	endingtype = perfect
+end
 
 function _update60()
 
@@ -9,9 +29,14 @@ end
 
 function _draw()
 
+	drawperfect()	
+end
+
+function drawperfect()
+
 	cls(4)
 	tick = stat(50)
-	printh(tick)
+	-- printh(tick)
 	headbob = time() * 1.5 % 1 < 0.25
 
 	--print("file 1")
@@ -33,6 +58,19 @@ function _draw()
 
 	-- cake
 	spr(136, 30, 45, 8, 6)
+
+	-- fruits in case of perfect
+	if endingtype == perfect then
+		spr(96, 64, 50, 1, 1)
+		spr(97, 54, 50, 1, 1)
+		spr(98, 58, 45, 1, 1)
+		spr(99, 49, 45, 1, 1)
+		spr(100, 74, 48, 1, 1)
+		spr(112, 64, 48, 1, 1)
+		spr(113, 44, 53, 1, 1)
+		spr(114, 42, 48, 1, 1)
+		spr(115, 58, 48, 1, 1)
+	end
 
 	-- candles
 	xcandles = {60, 70, 50, 45, 58}
@@ -74,7 +112,9 @@ function _draw()
 	sprchiki = headbob and 160 or 162
 	spr(sprchiki, 85, 75 + yoffset, 2, 2, true)
 	altrender(false)
+
 end
+
 
 function altrender(set)
 	palt(2, set)

@@ -4,23 +4,37 @@ __lua__
 
 
 
+mstate = 
+{
+	intro = "intro",
+	call = "call",
+	response = "response"
+}
+
+mside = 
+{
+	a = "a",
+	b = "b"
+}
 
 
 
+cartdata("chikischefs")
+
+intro_patterns = 1 -- 4 beats of drum intro
+
+
+function _init()
+	
 z = 0
 currfruits = {}
 bubblefruits = {}
 slices = {}
 tscratch = -1
 tcatanim = -1
-
-cls()
-music()
 last=0
---_set_fps(1000)
 
 -- conductor
-
 tick = 0  -- is stat(50) but always increasing
 tickl = 0 -- is stat(50)
 tickf = 0 -- is tick but interpolated
@@ -46,13 +60,56 @@ rabbit_state = 0
 headbob = false
 perfect_round = false
 perfect_rounds_count = 0
+playing = false
+trabbitappear = 0
+gameover = false
+tgameover = 0
 
-function _init()
-	
+music_state = mstate.intro
+
+current_level  = 0 -- increase every 4 rounds
+prev_level = 0
+round = 0 --rounds increase every call phase
+
+arr_basket = {}
+arr_basket_datum = {} --the motif of the round, set every 4 baskets
+arr_basket_show = {} -- string of 
+
+arr_basket_beats = {} -- linear list of beat numbers, {0,1,4..15}
+arr_basket_beats_show = {} --refresh on bar
+arr_basket_beats_results = {} -- results for each hit
+
+
+flag_refreshed_response = true
+flag_refreshed_call = true
+
+end
+
+function reset()
+
 end
 
 
 function _update60()
+
+
+	if playing then
+		play_update()
+	else
+		headbob = time() * 7.5 % 4 < 1
+		if btnp(5) then
+			music()
+			playing = true
+		end
+	end	
+
+	if gameover and time() - tgameover > 2 and btnp(5) then
+		_init()
+		
+	end
+end
+
+function play_update()
 	-- conductor
 	--detect a stat(50) looping
 	statprev = tickl
@@ -123,6 +180,7 @@ function _update60()
 	end
 
 
+	-- missed beat
 	if music_state == mstate.response then
 		for i = #arr_basket_beats_results + 1, #arr_basket_beats do
 			b = arr_basket_beats[i]
@@ -136,11 +194,24 @@ function _update60()
 		end
 	end	
 
+	-- game over
+	if gameover == false and newtick and tickl == 2 then
+		misses = (round - 1) - perfect_rounds_count
+		printh("misses: " .. misses)
+		if misses >= lives then
+			printh("gameover")
+			gameover = true
+			tgameover = time()
+			music(-1)
+			sfx(32)
+		end
+	end
+
 
 
 
 	-- scratch!
-	if anybtn then
+	if anybtn and gameover == false then
 		tscratch = 0
 		tcatanim = 0
 
@@ -161,7 +232,7 @@ function _update60()
 			diff = b - tickfl
 			absdiff = abs(diff)
 
-			printh("b " .. b)
+			-- printh("b " .. b)
 			
 			
 			-- check whats the closest fruit to hit
@@ -204,6 +275,7 @@ function _update60()
 
 					if perfect_round then
 						perfect_rounds_count = perfect_rounds_count + 1
+						dset(0, perfect_rounds_count)
 					end
 				else
 					perfect_round = false
@@ -261,7 +333,6 @@ function _update60()
 	updateslices()
 end
 
-
 function _draw()
 
 	-- clean screen
@@ -318,53 +389,74 @@ function _draw()
 	bstat = stat(50)
 
 	-- draw fruit texts
-	sylcount = 0
-	for i = 1, #arr_basket_show do
-		ifruit = arr_basket_show[i]
-		f = currentfruits[ifruit]
+	if gameover == false then
+		sylcount = 0
+		for i = 1, #arr_basket_show do
+			ifruit = arr_basket_show[i]
+			f = currentfruits[ifruit]
 
-		sylaudio = 0
-		for j = 1, #arr_basket_beats_show do
-			if bstat + 1 >= arr_basket_beats_show[j] then
-				sylaudio = j
-			end	
-		end
-
-
-		word_results = {}
-		
-		-- render text on blackboard
-		for j = 1, #f.notes do
-			if calltime then -- call time
-
-				result_int = sylaudio - sylcount >= j and 2 or 0
-				add(word_results, result_int)
-
-			else -- response time
-				
-				results_index = sylcount + j 
-				if results_index <= #arr_basket_beats_results then
-					result = arr_basket_beats_results[results_index]
-					result_int = result == true and 2 or 1
-					add(word_results, result_int)
-				else
-					add(word_results, 0)
-				end
+			sylaudio = 0
+			for j = 1, #arr_basket_beats_show do
+				if bstat + 1 >= arr_basket_beats_show[j] then
+					sylaudio = j
+				end	
 			end
-		end	
 
-		textfruit(f, i - 1, word_results)
-		sylcount = sylcount + #f.notes
+
+			word_results = {}
+			
+			-- render text on blackboard
+			for j = 1, #f.notes do
+				if calltime then -- call time
+
+					result_int = sylaudio - sylcount >= j and 2 or 0
+					add(word_results, result_int)
+
+				else -- response time
+					
+					results_index = sylcount + j 
+					if results_index <= #arr_basket_beats_results then
+						result = arr_basket_beats_results[results_index]
+						result_int = result == true and 2 or 1
+						add(word_results, result_int)
+					else
+						add(word_results, 0)
+					end
+				end
+			end	
+
+			textfruit(f, i - 1, word_results)
+			sylcount = sylcount + #f.notes
+		end
+	end
+
+	if playing == false then
+		print("chiki's chefs", 62,66, 7)
+		print("press ❎ to\n   start", 66,80, 10)
+		print("hi score: " .. dget(0), 62, 101, 7)
+	end
+
+	if gameover == true then
+		print("game over!", 68,66, 7)
+		print("press ❎ to\n  restart", 66,80, 10)
+		print("hi score: " .. dget(0), 62, 101, 7)
 	end
 
 	-- draw result checkmark
 	if perfect_round and (tick % 2 == 0 or tickl < 8) then
-		spr(12, 100, 93, 2, 2)
+		spr(12, 98, 93, 2, 2)
 		-- printh("perfect round")
 	end	
 
 	-- draw score
-	print("score: " .. perfect_rounds_count, 62, 101, 7)
+	if playing == true and gameover == false then
+		if round == 0 then
+			print("follow the\n  rhythm!", 67, 77, 10)
+		else
+			print("score: " .. perfect_rounds_count, 62, 101, 7)
+		end
+		
+	end
 
 	-- scratch
 	if tscratch >= 0 then
@@ -390,8 +482,8 @@ function _draw()
 	altrender(false)
 
 	-- cat chef hat
-	cy = headbob and 0 or 0
-	spr(176, xcat + 2, ycat - 2 + cy)
+	cy = headbob and 1 or 0
+	spr(69, xcat + 2, ycat - 3 + cy)
 
 	-- frog
 	altrender(true)
@@ -413,8 +505,9 @@ function _draw()
 	altrender(false)
 
 	-- frog chef hat
-	xfroghat = openmouth == true and 7 or 6
-	spr(176, xfrog + xfroghat, yfrog - 10, 1,1, true)
+	xfroghat = openmouth and 7 or 6
+	yfroghat = headbob and 1 or 0
+	spr(69, xfrog + xfroghat, yfrog - 10 + yfroghat, 1,1, true)
 
 	-- bowl back
 	xbowl = 10
@@ -433,12 +526,16 @@ function _draw()
 	altrender(false)
 
 	-- rabbit
-	altrender(true)
-	yrabbit = 100
-	if headbob then yrabbit = yrabbit + 1 end 
-	if rabbit_state == 0 then spr(199, 100, yrabbit, 4,4)
-	elseif rabbit_state == 1 then spr(196, 100 + 8, yrabbit, 3,4)
-	elseif rabbit_state == 2 then spr(192, 100, yrabbit, 4,4)
+	if playing == true then
+		trabbitappear = min(trabbitappear + 3/60, 1)
+		altrender(true)
+		xrabbit = 96
+		yrabbit = 97 + lerpquad(32, 0, trabbitappear)
+		if headbob then yrabbit = yrabbit + 1 end 
+		if rabbit_state == 0 then spr(199, xrabbit, yrabbit, 4,4)
+		elseif rabbit_state == 1 then spr(196, xrabbit + 8, yrabbit, 3,4)
+		elseif rabbit_state == 2 then spr(192, xrabbit, yrabbit, 4,4)
+		end
 	end
 	altrender(false)
 
@@ -520,8 +617,8 @@ function printdebug()
 	print("stat(50) " .. stat(50), 0, 0)
 	print("stat(54) " .. stat(54))
 	print("state "..music_state)
-	print("side prebar "..music_side_prebar)	
-	print("side  "..music_side_show)	
+	-- print("side prebar "..music_side_prebar)	
+	-- print("side  "..music_side_show)	
 	print("round "..round)
 	print("tick " .. tick)
 	print("tickf ".. tickf)
@@ -666,7 +763,7 @@ function drawfruits()
 				if f.toffset > 0.11 then 
 					bubblespr = 92
 					tilesize = 4
-				elseif f.toffset > 0.08 then
+				elseif f.toffset > 0.06 then
 					bubblespr = 44
 					tilesize = 3
 				end
@@ -735,37 +832,6 @@ end
 -->8
 --chef music engine
 
-
-mstate = 
-{
-	intro = "intro",
-	call = "call",
-	response = "response"
-}
-
-mside = 
-{
-	a = "a",
-	b = "b"
-}
-
-music_state = mstate.intro
-
-current_level  = 0 -- increase every 4 rounds
-prev_level = 0
-round = 0 --rounds increase every call phase
-
-arr_basket = {}
-arr_basket_datum = {} --the motif of the round, set every 4 baskets
-arr_basket_show = {} -- string of 
-
-arr_basket_beats = {} -- linear list of beat numbers, {0,1,4..15}
-arr_basket_beats_show = {} --refresh on bar
-arr_basket_beats_results = {} -- results for each hit
-
-
-flag_refreshed_response = true
-flag_refreshed_call = true
 ticks_in_beat = 4
 ticks_in_pattern = 16
 
@@ -773,7 +839,8 @@ ticks_in_pattern = 16
 startbeats_a = {0,4,8,12}
 startbeats_b = {0,6,12}
 
-intro_patterns = 1 -- 4 beats of drum intro
+
+
 
 function update_conductor()
 	--54 is music pattern: 0 is intro, odd numbers are calls and even are responses
@@ -1255,7 +1322,7 @@ ticklength = 0.1333 -- constant
 xfrog = 66
 yfrog = 32
 dt = 1/60
-
+lives = 4
 
 
 
@@ -1298,7 +1365,7 @@ __gfx__
 00f77777777777f099333333333333333333339977767760000000000000007cc000000cc700000079977999a9f97f9a00007770777777770777000000000000
 006f777777777f609933333333333333333333997777676700000000000000077cccccc770000000a9799979f997799f00007700007777000077000000000000
 0006fffffffff60099333333333333333333339976777676000000000000000007777770000000000799999af99f9f9f00070000070770700000700000000000
-0000666666666000999999999999999999999990776667600000000000000000000000000000000000aaaaa00ff999a000700000700070070000070000000000
+0000666666666000999999999999999999999999776667600000000000000000000000000000000000aaaaa00ff999a000700000700070070000070000000000
 000000000000000009999999999999999999999077707600000000000000000000000000000000000000000000affa0007000000000000000000007000000000
 22222222222222222222222222222222222222222222222200000000000000000000000000000000000050000000500000000000000000000000000000000000
 22222222222222222222222222222222222222222222222200000000000000000000000000000000099affa00affa99000700000000000070000000000000700
@@ -1429,6 +1496,17 @@ bd1000003777500000377753c775377753c775007050070500705007050070500705007050070537
 91100000241753c105301750c1053c1750c1052417530105301750c1052417530105301750c1053c1750c105241750c105301750c1053c1750c105241750c105301750c105241750c105301750c1053c1750c105
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 011000001f1551f1551f1551f1551c1551c1551c1551c1551a1551a1551a1551a1551c1551a1551f1551f15500000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+011000003b05238052330522e05235052320522b05226052250520000200002000020000200002000020000200002000020000200002000020000200002000020000200002000020000200002000020000200002
 __music__
 01 05434040
 01 05030b55
