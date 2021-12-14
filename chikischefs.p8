@@ -462,8 +462,10 @@ function _draw()
 
 	if playing == false then
 		print("chiki's chefs", 62,66, 7)
-		print("press ❎ to\n   start", 66,80, 10)
-		print("hi score: " .. dget(0), 62, 101, 7)
+		print("press ❎ to\n   start", 66,74, 10)
+		print("offset: "..input_offset,66,90, 10)
+		print("⬅️ and ➡️ to change")
+		print("hi score: " .. dget(0), 70, 101, 7)
 	end
 
 	if gameover == true then
