@@ -44,7 +44,7 @@ last=0
 tick = 0  -- is stat(50) but always increasing
 tickl = 0 -- is stat(50)
 tickf = 0 -- is tick but interpolated
-input_offset = -0.3
+input_offset = -3
 
 statloops = -1
 statprev =0
@@ -95,6 +95,7 @@ flag_refreshed_call = true
 lives = maxlives
 
 currentfruits = {fruits.grape} --starting fruits
+slices = {}
 
 end
 
@@ -114,6 +115,10 @@ function _update60()
 			music()
 			playing = true
 		end
+
+		if btnp(0) then input_offset -= 1 end
+		if btnp(1) then input_offset += 1 end
+
 	end	
 
 	if time() - tgameover > 1 and btnp(5) then
@@ -258,7 +263,7 @@ function play_update()
 
 			b = arr_basket_beats_show[nextbeat]
 
-			local tickf_adj = tickf - input_offset --i.e. negative means you get to hit earlier
+			local tickf_adj = tickf - input_offset / 10.0 --i.e. negative means you get to hit earlier
 
 			tickfl = tickf_adj % 16
 			diff = b - tickfl
@@ -474,13 +479,19 @@ function _draw()
 	elseif allwon == true then
 		print("you are\namazing!", 72,64, 7)
 		print("press ❎ to\n continue", 66,80, 10)
-		print("score: " .. perfect_rounds_count, 62, 101, 7)
+		color = perfect_rounds_count == 32 and 10 or 7
+		print("score: " .. perfect_rounds_count, 62, 101, color)
 	elseif playing == false then
-		print("chiki's chefs", 62,66, 7)
-		print("press ❎ to\n   start", 66,74, 10)
-		print("offset: "..input_offset,66,90, 10)
-		print("⬅️ and ➡️ to change")
-		print("hi score: " .. dget(0), 70, 101, 7)
+		print("chiki's chefs", 62,62, 7)
+		print("press ❎ to\n   start", 66,72, 10)
+		print("offset:\n⬅️ ".. (input_offset/10.0) .. " ➡️",62,87, 7)
+		hiscore = dget(0)
+		if hiscore == 32 then
+			color = time() % 1.0 < 0.5 and 10 or 9
+		else
+			color = 7
+		end
+		print("hi score: " .. hiscore, 62, 101, color)
 	end
 	
 
@@ -1005,6 +1016,7 @@ function update_conductor()
 				music(-1)
 				allwon = true
 				tgameover = time()
+				rabbit_state = 2
 			else
 				printh("new level!")
 				is_new_level = true
