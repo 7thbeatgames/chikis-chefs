@@ -13,6 +13,7 @@ endingtype = 0
 
 function _init()
 	params = stat(6)
+	
 
 	if params == "allwon" then
 		endingtype = perfect
@@ -37,6 +38,7 @@ end
 function _draw()
 
 	drawperfect()	
+	//print(params)
 end
 
 function drawperfect()

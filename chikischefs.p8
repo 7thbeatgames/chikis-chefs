@@ -117,17 +117,17 @@ function _update60()
 		end
 	end	
 
-	if time() - tgameover > 2 and btnp(5) then
+	if time() - tgameover > 1 and btnp(5) then
 		if gameover then
 			_init()
 		end
 
 		if won then
-			load("ending.p8", "won")
+			load("ending.p8", "back to game", "won")
 		end
 
 		if allwon then
-			load("ending.p8", "allwon")
+			load("ending.p8", "back to game", "allwon")
 		end
 	end
 
@@ -167,7 +167,9 @@ function play_update()
 	end
 
 
-
+	-- if anybtn then
+	-- 	load("ending.p8", "back to game", "allwon")
+	-- end
 
 	-- appear bubble fruit
 	-- todo change to depend on rhythm
@@ -225,7 +227,7 @@ function play_update()
 	end	
 
 	-- game over
-	if gameover == false and newtick and tickl == 2 then
+	if gameover == false and won == false and allwon == false and newtick and tickl == 2 then
 		misses = max(0, (round - 1) - perfect_rounds_count)
 		lives = maxlives - misses
 		printh("misses: " .. misses)
@@ -458,32 +460,28 @@ function _draw()
 		end
 	end
 
-	if playing == false then
-		print("chiki's chefs", 62,66, 7)
-		print("press ❎ to\n   start", 66,80, 10)
-		print("hi score: " .. dget(0), 62, 101, 7)
-	end
 
 	if gameover == true then
 		print("game over!", 68,66, 7)
 		print("press ❎ to\n  restart", 66,80, 10)
 		print("score: " .. perfect_rounds_count, 62, 101, 7)
-	end
-
-	if won == true then
+	elseif won == true then
 		print("nicely done!", 65,66, 7)
 		print("press ❎ to\n continue", 66,80, 10)
-		print("hi score: " .. dget(0), 62, 101, 7)
-	end	
-
-	if allwon == true then
+		print("score: " .. perfect_rounds_count, 62, 101, 7)
+	elseif allwon == true then
 		print("you are\namazing!", 72,64, 7)
 		print("press ❎ to\n continue", 66,80, 10)
+		print("score: " .. perfect_rounds_count, 62, 101, 7)
+	elseif playing == false then
+		print("chiki's chefs", 62,66, 7)
+		print("press ❎ to\n   start", 66,80, 10)
 		print("hi score: " .. dget(0), 62, 101, 7)
-	end		
+	end
+	
 
 	-- draw result checkmark
-	if (tick % 2 == 0 or tickl < 8) then
+	if (tick % 2 == 0 or tickl < 8) and won == false and gameover == false and allwon == false then
 		if perfect_round then
 			spr(12, 97, 92, 2, 2)
 		elseif rabbit_state == 1 then
@@ -983,6 +981,7 @@ function update_conductor()
 		round+=1
 		--check if we're in for a new level
 		level = (round-1)\8+1 --round 1-8 is level 1, 9-16 is level 2,  etc
+		-- level = (round-1)\2+1 --uncomment this for fast levels
 		current_level = level
 		local is_new_level = false
 
