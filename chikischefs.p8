@@ -783,7 +783,7 @@ function drawfruits()
 			spr(data.sprite, x, y, data.size.x, data.size.y)
 			pal()
 
-			print(f.lives, x, y, 7)
+			-- print(f.lives, x, y, 7)
 
 			-- bubble
 			maxside = max(data.size.x, data.size.y)
