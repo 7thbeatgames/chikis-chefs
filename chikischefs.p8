@@ -256,7 +256,7 @@ function play_update()
 
 			b = arr_basket_beats_show[nextbeat]
 
-			local tickf_adj = tickf + input_offset
+			local tickf_adj = tickf - input_offset --i.e. negative means you get to hit earlier
 
 			tickfl = tickf_adj % 16
 			diff = b - tickfl
@@ -286,7 +286,7 @@ function play_update()
 			
 
 			-- hit correctly
-			if absdiff < 1 then 
+			if absdiff < 0.75 then 
 				printh("hit! " .. diff)
 				arr_basket_beats_results[nextbeat] = true
 				bubblefruits[closestfruit].tglow = 0.1
