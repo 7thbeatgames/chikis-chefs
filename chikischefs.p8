@@ -174,9 +174,14 @@ function play_update()
 			beatpos = beatpos + #f.syllables
 		end
 
-		beat = arr_basket_beats[beatpos]
-		f = currentfruits[ifruit]
-		bubblefruit(f, pos, beat)
+		if beatpos <= #arr_basket_beats then
+			beat = arr_basket_beats[beatpos]
+			f = currentfruits[ifruit]
+
+			if #f.notes > 0 then -- don't add rests
+				addbubblefruit(f, pos, beat)
+			end
+		end
 	end
 
 
@@ -240,6 +245,7 @@ function play_update()
 			for i = 1, #bubblefruits do
 				f1 = bubblefruits[i]
 				f2 = bubblefruits[closestfruit]
+
 				if abs(f1.beat - b) < abs(f2.beat - b) then
 					closestfruit = i
 				end
@@ -275,6 +281,7 @@ function play_update()
 
 					if perfect_round then
 						perfect_rounds_count = perfect_rounds_count + 1
+						sfx(33)
 						dset(0, perfect_rounds_count)
 					end
 				else
@@ -294,15 +301,6 @@ function play_update()
 			end
 		end
 	
-
-		
-		-- for i = 1, #bubblefruits do
-		-- 	f = bubblefruits[i]
-		-- 	if abs(yhitcenter - f.y) < yhitwindow then
-		-- 		printh("hit")
-		-- 	end	
-		-- end	
-		
 	end
 
 
@@ -663,7 +661,7 @@ function bringfruit(fruit)
 	}
 end
 
-function bubblefruit(fruit, position, beat)
+function addbubblefruit(fruit, position, beat)
 	add(bubblefruits, {
 		x0 = 16 + position * bubbles_xoffset, 
 		y0 = ybubble0 + (position % 2) * 2 , -- initial ypos
@@ -748,16 +746,18 @@ function drawfruits()
 			spr(data.sprite, x, y, data.size.x, data.size.y)
 			pal()
 
+			print(f.lives, x, y, 7)
+
 			-- bubble
-			
-			tilesize = max(data.size.x, data.size.y) == 1 and 2 or 3
+			maxside = max(data.size.x, data.size.y)
+			tilesize = maxside == 1 and 2 or 3
 
 
 			if f.pstart < 1 then
-				rbubble = lerpoutback(1, data.size.x * 6, f.pstart)
+				rbubble = lerpoutback(1, maxside * 6, f.pstart)
 				drawbubble(f.x, f.y, rbubble)
 			elseif f.toffset < 0.15 then
-				bubblespr = data.size.x == 1 and 37 or 39
+				bubblespr = maxside == 1 and 37 or 39
 
 				-- explosion anims
 				if f.toffset > 0.11 then 
@@ -1266,7 +1266,7 @@ fruits =
 		size = {x = 2, y = 2},
 		slicesize = {x = 2, y = 1},
 		sprite = 4,
-		slicesprite = 58,
+		slicesprite = 42,
 		bottom = 2,
 		notes = {1,2,3,4},
 		maincolor = 3
@@ -1298,8 +1298,8 @@ fruits =
 		syllables = {".."},
 		size = {x = 1, y = 1},
 		slicesize = {x = 1, y = 1},
-		sprite = 23, --todo
-		slicesprite = 23, --todo
+		sprite = 47, --todo
+		slicesprite = 47, --todo
 		bottom = 0,
 		notes = {},
 		maincolor = 0
@@ -1317,12 +1317,11 @@ fruitlevels = --repeated is to alter probabilities
 
 ybubble0 = 20
 yhitcenter = 72
-yhitwindow = 10 -- plus/minus
-ticklength = 0.1333 -- constant
+ticklength = 0.133333 -- constant
 xfrog = 66
 yfrog = 32
 dt = 1/60
-lives = 4
+lives = 400
 
 
 
@@ -1507,6 +1506,7 @@ bd1000003777500000377753c775377753c775007050070500705007050070500705007050070537
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 011000003b05238052330522e05235052320522b05226052250520000200002000020000200002000020000200002000020000200002000020000200002000020000200002000020000200002000020000200002
+000400002c0502f050340503b0503d050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __music__
 01 05434040
 01 05030b55
