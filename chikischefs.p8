@@ -93,6 +93,8 @@ arr_basket_beats_results = {} -- results for each hit
 flag_refreshed_response = true
 flag_refreshed_call = true
 
+lives = maxlives
+
 end
 
 function reset()
@@ -222,9 +224,10 @@ function play_update()
 
 	-- game over
 	if gameover == false and newtick and tickl == 2 then
-		misses = (round - 1) - perfect_rounds_count
+		misses = max(0, (round - 1) - perfect_rounds_count)
+		lives = maxlives - misses
 		printh("misses: " .. misses)
-		if misses >= lives then
+		if misses >= maxlives then
 			printh("gameover")
 			if level == 3 then
 				won = true
@@ -478,8 +481,12 @@ function _draw()
 	end		
 
 	-- draw result checkmark
-	if perfect_round and (tick % 2 == 0 or tickl < 8) then
-		spr(12, 98, 93, 2, 2)
+	if (tick % 2 == 0 or tickl < 8) then
+		if perfect_round then
+			spr(12, 97, 92, 2, 2)
+		elseif rabbit_state == 1 then
+			spr(14, 97, 92, 2, 2)
+		end
 		-- printh("perfect round")
 	end	
 
@@ -581,10 +588,10 @@ function _draw()
 	-- drawbubble(25, 25, r)
 
 
-	-- result squares
-	
-	
-
+	-- lives
+	circfill(7,7, 6, 0)
+	circfill(7,7, 5, 8)
+	print(lives, 6,5, 7)
 
 
 	-- debug
@@ -1400,7 +1407,7 @@ ticklength = 0.133333 -- constant
 xfrog = 66
 yfrog = 32
 dt = 1/60
-lives = 5
+maxlives = 5
 
 
 
