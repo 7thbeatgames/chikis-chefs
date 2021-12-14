@@ -29,8 +29,6 @@ mside =
 
 cartdata("chikischefs")
 
-intro_patterns = 1 -- 4 beats of drum intro
-
 
 function _init()
 	
@@ -46,6 +44,7 @@ last=0
 tick = 0  -- is stat(50) but always increasing
 tickl = 0 -- is stat(50)
 tickf = 0 -- is tick but interpolated
+input_offset = -0.3
 
 statloops = -1
 statprev =0
@@ -83,7 +82,7 @@ round = 0 --rounds increase every call phase
 
 arr_basket = {}
 arr_basket_datum = {} --the motif of the round, set every 4 baskets
-arr_basket_show = {} -- string of 
+arr_basket_show = {} -- arr_basket but updated at start of next bar only
 
 arr_basket_beats = {} -- linear list of beat numbers, {0,1,4..15}
 arr_basket_beats_show = {} --refresh on bar
@@ -254,7 +253,10 @@ function play_update()
 		if nextbeat <= #arr_basket_beats_show then
 
 			b = arr_basket_beats_show[nextbeat]
-			tickfl = tickf % 16
+
+			local tickf_adj = tickf + input_offset
+
+			tickfl = tickf_adj % 16
 			diff = b - tickfl
 
 			if diff < tickfl and abs(diff) > 8 then
@@ -889,7 +891,6 @@ startbeats_b = {0,6,12}
 function update_conductor()
 	--54 is music pattern: 0 is intro, odd numbers are calls and even are responses
 	-- 0 [12] [34] [56] [78] || [9 10] [11 12] ..
-	--calltime = (stat(54) - intro_patterns)%2 == 0
 
 	local sm = stat(54)-1
 
