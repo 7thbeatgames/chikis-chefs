@@ -14,17 +14,22 @@ endingtype = 0
 function _init()
 	params = stat(6)
 
-	if params == "perfect" then
+	if params == "allwon" then
 		endingtype = perfect
 	else 
 		endingtype = win
 	end
 
-	endingtype = perfect
+	-- endingtype = perfect
 end
 
 function _update60()
 
+	if time() > 4 then
+		if btnp(❎) then
+			load("chikischefs.p8")
+		end
+	end
 end
 
 function _draw()
@@ -112,6 +117,10 @@ function drawperfect()
 	sprchiki = headbob and 160 or 162
 	spr(sprchiki, 85, 75 + yoffset, 2, 2, true)
 	altrender(false)
+
+	if time() > 4 then
+		print("press ❎ to continue", 21, 115, 7)
+	end
 
 end
 

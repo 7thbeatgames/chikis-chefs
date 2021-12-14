@@ -11,6 +11,14 @@ mstate =
 	response = "response"
 }
 
+gameresult =
+{
+	playing = 0,
+	gameover = 1,
+	won = 2,
+	fullwon = 3
+}
+
 mside = 
 {
 	a = "a",
@@ -63,6 +71,8 @@ perfect_rounds_count = 0
 playing = false
 trabbitappear = 0
 gameover = false
+won = false
+allwon = false
 tgameover = 0
 
 music_state = mstate.intro
@@ -103,10 +113,21 @@ function _update60()
 		end
 	end	
 
-	if gameover and time() - tgameover > 2 and btnp(5) then
-		_init()
-		
+	if time() - tgameover > 2 and btnp(5) then
+		if gameover then
+			_init()
+		end
+
+		if won then
+			load("ending.p8", "won")
+		end
+
+		if allwon then
+			load("ending.p8", "allwon")
+		end
 	end
+
+
 end
 
 function play_update()
@@ -205,7 +226,11 @@ function play_update()
 		printh("misses: " .. misses)
 		if misses >= lives then
 			printh("gameover")
-			gameover = true
+			if level == 3 then
+				won = true
+			else
+				gameover = true
+			end
 			tgameover = time()
 			music(-1)
 			sfx(32)
@@ -387,7 +412,7 @@ function _draw()
 	bstat = stat(50)
 
 	-- draw fruit texts
-	if gameover == false then
+	if gameover == false and won == false and allwon == false then
 		sylcount = 0
 		for i = 1, #arr_basket_show do
 			ifruit = arr_basket_show[i]
@@ -439,6 +464,18 @@ function _draw()
 		print("press ❎ to\n  restart", 66,80, 10)
 		print("hi score: " .. dget(0), 62, 101, 7)
 	end
+
+	if won == true then
+		print("nicely done!", 65,66, 7)
+		print("press ❎ to\n continue", 66,80, 10)
+		print("hi score: " .. dget(0), 62, 101, 7)
+	end	
+
+	if allwon == true then
+		print("you are\namazing!", 72,64, 7)
+		print("press ❎ to\n continue", 66,80, 10)
+		print("hi score: " .. dget(0), 62, 101, 7)
+	end		
 
 	-- draw result checkmark
 	if perfect_round and (tick % 2 == 0 or tickl < 8) then
@@ -913,7 +950,7 @@ function update_conductor()
 	(music_state == mstate.intro or  music_state == mstate.response)) then
 		round+=1
 		--check if we're in for a new level
-		level = (round-1)\8+1 --round 5 is level 2 etc
+		level = (round-1)\2+1 --round 5 is level 2 etc
 		local is_new_level = false
 
 		local is_new_basket = stat(54) % 8 == 0 --[12][34][56][78] if we are on the 8
@@ -928,13 +965,20 @@ function update_conductor()
 		end
 
 		if level ~= prev_level then
-			printh("new level!")
-			is_new_level = true
-			prev_level = level
-			newfruit = add_new_fruit(level)
 
-			--add 'rest' in for level 3
-			if (level == 3) then add(currentfruits,fruits.rest)
+			if level > #fruitlevels then -- there's no more levels, you won!
+				music(-1)
+				allwon = true
+				tgameover = time()
+			else
+				printh("new level!")
+				is_new_level = true
+				prev_level = level
+				newfruit = add_new_fruit(level)
+
+				--add 'rest' in for level 3
+				if (level == 3) then add(currentfruits,fruits.rest)
+			end
 		end
 		end
 
@@ -944,7 +988,7 @@ function update_conductor()
 		--make sure new level's basket has at least one of the new fruit
 		if (is_new_level) then 
 			generate_fruit_basket(newfruit,true,new_basket_size)
-			else
+		else
 			generate_fruit_basket(newfruit,is_new_basket,new_basket_size)
 		end
 
