@@ -237,7 +237,7 @@ function play_update()
 		printh("misses: " .. misses)
 		if misses >= maxlives then
 			printh("gameover")
-			if current_level == 3 then
+			if current_level >= 3 then
 				won = true
 			else
 				gameover = true
