@@ -2,7 +2,12 @@ pico-8 cartridge // http://www.pico-8.com
 version 34
 __lua__
 
+-- chikis chefs
+-- by 7th beat games
+-- a fangame of chiki's chase by david fu
 
+-- notes: tick here is mostly used to mean the length of 1 note in the tracker
+-- not the way pico uses ticks, which is "every note in the tracker takes [sfx pattern speed] ticks" e.g. 16 ticks per note
 
 mstate = 
 {
@@ -64,6 +69,7 @@ game_difficulties.very_hard_plus
 }
 
 current_speed = 16
+default_speed = 16
 current_difficulty = game_difficulties.normal
 current_difficulty_id = 3
 difficulty_selection = false
@@ -85,11 +91,12 @@ last=0
 tick = 0  -- is stat(50) but always increasing
 tickl = 0 -- is stat(50)
 tickf = 0 -- is tick but interpolated
-input_offset = -40 -- in ms
+input_offset = 80 -- in ms
 game_tick_speed = 16 --set in music tab. 16 means 16'ticks' per note.
 game_tick_ui = 0 -- 
 single_tick_length = 183/22050 --1 single tick (in pico terms) is 183 samples at 22050hz
 
+hit_margin = 0.8 -- in ticks! plus minus. see change_difficulty() for hardcoded
 
 statloops = -1
 statprev =0
@@ -163,6 +170,12 @@ function change_difficulty(_increase)
 
 	current_difficulty = game_difficulty_ids[current_difficulty_id]
 	current_speed = current_difficulty.speed
+
+	if current_difficulty_id < 3 then
+	 hit_margin = 0.95
+	else
+	 hit_margin = 0.8
+	end
 end
 
 function _update60()
@@ -220,7 +233,11 @@ function play_update()
 	newbar = newtick and tickl == 0
 
 	tick = stat(50) + statloops * statcap
-	tickf = newtick and tick or tickf + dt 
+	-- find one frame worth in the tick domain
+	-- s / (s / tick) = tick
+	dtt = dt / (single_tick_length * current_speed)
+
+	tickf = newtick and tick or tickf + dtt
 	anybtn = btnp(0) or btnp(1) or btnp(2) or btnp(3) or btnp(4) or btnp(5)
 	
 	headbob = tickl % 4 < 1
@@ -335,12 +352,12 @@ function play_update()
 
 		--but first , check if should ignore the scratch
 		local shouldcount = true
-
+		printh("-------")
 		printh(tickl)
 
-		if (music_state == mstate.call and ( tickl > 2 or tickl < 13))
+		if (music_state == mstate.call and ( tickl > 2 and tickl < 13))
 		then shouldcount = false end
-
+		printh(shouldcount)
 
 		if nextbeat <= #arr_basket_beats_show and shouldcount then
 
@@ -353,7 +370,9 @@ function play_update()
 			local tickf_adj = tickf - offset_ticks --i.e. negative means you get to hit earlier
 
 			tickfl = tickf_adj % 16
-			diff = b - tickfl
+
+			-- basket beats are 1-indexes, tick is 0 indexed!!
+			diff = b - 1 - tickfl
 
 
 			b_adj = b
@@ -362,10 +381,10 @@ function play_update()
 				-- printh("dddd")
 			end
 
-			diff = b_adj - tickfl
+			diff = b_adj - 1 - tickfl
 			absdiff = abs(diff)
 
-			-- printh("b " .. b)
+			printh("b " .. b)
 			
 			
 			-- check whats the closest fruit to hit
@@ -389,9 +408,9 @@ function play_update()
 			end
 
 			-- hit correctly
-			if absdiff < 0.75 then 
+			if absdiff < hit_margin then  -- set in change_difficulty
 				printh("hit! " .. diff)
-				arr_basket_beats_results[nextbeat] = true
+				arr_basket_beats_results[nextbeat] = true -- i.e. adds array length!
 				bubblefruits[closestfruit].tglow = 0.1
 
 				-- change rabbit to happy if it wasn't angry
@@ -856,6 +875,9 @@ end
 
 
 function updatefruits()
+
+	--for different difficulties, adjusting the hardcoded numbers that were for default speed
+	fallmultiplier = default_speed/current_speed
 	
 
 	for i = 1, #bubblefruits do
@@ -879,7 +901,7 @@ function updatefruits()
 			if f.tfreeze <= 0 then
 				f.toffset = f.toffset + dt
 			end
-			f.y = f.y0 + f.toffset * f.toffset * 90 + f.toffset * 25
+			f.y = f.y0 + f.toffset * f.toffset * (90 * fallmultiplier) + f.toffset * (25 * fallmultiplier)
 		end
 
 		-- glow animation when hit
