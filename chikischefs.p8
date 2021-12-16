@@ -85,10 +85,10 @@ last=0
 tick = 0  -- is stat(50) but always increasing
 tickl = 0 -- is stat(50)
 tickf = 0 -- is tick but interpolated
-input_offset = -0.3 -- in ms
+input_offset = -40 -- in ms
 game_tick_speed = 16 --set in music tab. 16 means 16'ticks' per note.
 game_tick_ui = 0 -- 
-ticklength = 0.133333 -- constant. 
+single_tick_length = 183/22050 --1 single tick (in pico terms) is 183 samples at 22050hz
 
 
 statloops = -1
@@ -269,6 +269,7 @@ function play_update()
 		--printh(pos)
 		ifruit = arr_basket_show[pos]
 
+		--finds the starting beat of the first syllable of the fruits
 		beatpos = 1
 		for i = 1, pos - 1 do
 			f = currentfruits[arr_basket_show[i]]
@@ -337,7 +338,7 @@ function play_update()
 
 		printh(tickl)
 
-		if (music_state == mstate.call and ( tickl > 1 or tickl < 14))
+		if (music_state == mstate.call and ( tickl > 2 or tickl < 13))
 		then shouldcount = false end
 
 
@@ -346,19 +347,22 @@ function play_update()
 			b = arr_basket_beats_show[nextbeat]
 
 			---s / (s/tick) = tick
-			local offset_ticks = input_offset / 1000 / 0.
+			-- the 'tick' we mean is length of a note i.e. 16 pico ticks at normal speed
+			local offset_ticks = (input_offset / 1000) / (current_speed * single_tick_length)
 
-			local tickf_adj = tickf - input_offset --i.e. negative means you get to hit earlier
+			local tickf_adj = tickf - offset_ticks --i.e. negative means you get to hit earlier
 
 			tickfl = tickf_adj % 16
 			diff = b - tickfl
 
+
+			b_adj = b
 			if diff < tickfl and abs(diff) > 8 then
-				b = b + 16
+				b_adj = b + 16 --must be adj cause we are using b again below
 				-- printh("dddd")
 			end
 
-			diff = b - tickfl
+			diff = b_adj - tickfl
 			absdiff = abs(diff)
 
 			-- printh("b " .. b)
@@ -375,7 +379,14 @@ function play_update()
 				end
 			end
 
-			
+			--^ this is imperfect cause it checks the starting syllables
+			-- also b is not the current beat but the supposed beat of the next slice, why?
+			-- quick hack to revert to prev if still alive
+			if closestfruit > 1 and bubblefruits[closestfruit-1].lives > 0
+			and abs(bubblefruits[closestfruit-1].beat - b) < 6 --max 5 beats from starting syllable to end
+			then
+			closestfruit -= 1
+			end
 
 			-- hit correctly
 			if absdiff < 0.75 then 
@@ -570,7 +581,7 @@ function _draw()
 		if not difficulty_selection then
 		print("chiki's chefs", 62,62, 7)
 		print("press ❎ to\n   start", 66,72, 10)
-		print("offset:\n⬅️ ".. input_offset*0.133333333*1000 .. "ms ➡️",62,87, 7)
+		print("offset:\n⬅️ ".. input_offset.. " ms ➡️",62,87, 7)
 		hiscore = dget(0)
 		if hiscore == 32 then
 			color = time() % 1.0 < 0.5 and 10 or 9
@@ -822,6 +833,7 @@ function bringfruit(fruit)
 	}
 end
 
+-- beat refers to starting beat of first syllable
 function addbubblefruit(fruit, position, beat)
 	add(bubblefruits, {
 		x0 = 16 + position * bubbles_xoffset, 
