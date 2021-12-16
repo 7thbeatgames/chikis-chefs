@@ -76,6 +76,10 @@ difficulty_selection = false
 
 cartdata("chikischefs")
 
+--outside to save between runs
+input_offset = 80 -- in ms
+
+
 
 function _init()
 	
@@ -91,7 +95,6 @@ last=0
 tick = 0  -- is stat(50) but always increasing
 tickl = 0 -- is stat(50)
 tickf = 0 -- is tick but interpolated
-input_offset = 80 -- in ms
 game_tick_speed = 16 --set in music tab. 16 means 16'ticks' per note.
 game_tick_ui = 0 -- 
 single_tick_length = 183/22050 --1 single tick (in pico terms) is 183 samples at 22050hz
@@ -147,7 +150,7 @@ flag_refreshed_call = true
 
 lives = maxlives
 
-currentfruits = {fruits.grape,fruits.acaiberries} --starting fruits
+currentfruits = {fruits.grape} --starting fruits
 slices = {}
 
 end
@@ -436,7 +439,7 @@ function play_update()
 					if perfect_round then
 						perfect_rounds_count = perfect_rounds_count + 1
 						-- sfx(33) disable cause no channels
-						dset(0, perfect_rounds_count)
+						dset(0, max(perfect_rounds_count, dget(0)))
 					end
 				else
 					perfect_round = false
@@ -1600,7 +1603,7 @@ fruitlevels = --repeated is to alter probabilities
 	{fruits.orange,fruits.apple},
 	{fruits.papaya,fruits.banana},
 	{fruits.pineapple, fruits.coconut},
-	{fruits.watermelon,fruits.chirimoya}
+	{fruits.watermelon,fruits.chirimoya, fruits.acaiberries}
 }
 
 ybubble0 = 20
