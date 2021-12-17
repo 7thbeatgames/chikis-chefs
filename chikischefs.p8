@@ -84,6 +84,8 @@ input_offset = 80 -- in ms
 
 function _init()
 	
+
+poke(0x5f00+92,255) --disable repeat button press
 z = 0
 currfruits = {}
 bubblefruits = {}
