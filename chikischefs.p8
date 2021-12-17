@@ -8,6 +8,7 @@ __lua__
 
 -- notes: tick here is mostly used to mean the length of 1 note in the tracker
 -- not the way pico uses ticks, which is "every note in the tracker takes [sfx pattern speed] ticks" e.g. 16 ticks per note
+-- 1 pico tick = 183/22050 s
 
 mstate = 
 {
@@ -144,9 +145,10 @@ arr_basket_beats = {} -- linear list of beat numbers, {0,1,4..15}
 arr_basket_beats_show = {} --refresh on bar
 arr_basket_beats_results = {} -- results for each hit
 
-
+-- false when used
 flag_refreshed_response = true
 flag_refreshed_call = true
+flag_refreshed_newbar = true
 
 lives = maxlives
 
@@ -222,6 +224,12 @@ function _update60()
 	end
 
 
+end
+
+function get_offset_ticks()
+			---s / (s/tick) = tick
+			-- the 'tick' we mean is length of a note i.e. 16 pico ticks at normal speed
+			return (input_offset / 1000) / (current_speed * single_tick_length)
 end
 
 function play_update()
@@ -368,7 +376,7 @@ function play_update()
 
 			---s / (s/tick) = tick
 			-- the 'tick' we mean is length of a note i.e. 16 pico ticks at normal speed
-			local offset_ticks = (input_offset / 1000) / (current_speed * single_tick_length)
+			local offset_ticks = get_offset_ticks()
 
 			local tickf_adj = tickf - offset_ticks --i.e. negative means you get to hit earlier
 
@@ -541,7 +549,7 @@ function _draw()
 		6)
 
 
-	bstat = stat(50)
+	bstat = stat(50) - get_offset_ticks()
 
 	-- draw fruit texts
 	if gameover == false and won == false and allwon == false then
@@ -896,7 +904,7 @@ function updatefruits()
 
 
 		-- falling animation
-		if(tick >= f.sptick) then
+		if(tick - get_offset_ticks() >= f.sptick) then
 			if f.tfreeze > 0 then
 				f.tfreeze = f.tfreeze - dt
 			end
@@ -1082,7 +1090,11 @@ function update_conductor()
 	beatnumber = tickl\4
 
 	--update the 'on new bar' equivalents from the prebar variables for showing
-	if(tickl == 0) then
+	--adjust for gameplay offset, so doesnt eat into the response pattern phase
+	-- minus so it happens later
+	-- flag_refreshed_newbar is start of call phase only
+	if(tickl - get_offset_ticks() > 0 and tickl - get_offset_ticks() < 3 and flag_refreshed_newbar == true) then
+		flag_refreshed_newbar = false
 		arr_basket_beats_show = {}
 
 		for i = 1, #arr_basket_beats do
@@ -1141,6 +1153,7 @@ function update_conductor()
 	-- if in a second half of a response pattern or intro, generate new beat and put in call pattern
 	if (tickl > ticks_in_pattern/2 and flag_refreshed_response == true and
 	(music_state == mstate.intro or  music_state == mstate.response)) then
+		flag_refreshed_newbar = true
 		round+=1
 		--check if we're in for a new level
 		level = (round-1)\8+1 --round 1-8 is level 1, 9-16 is level 2,  etc
@@ -1206,8 +1219,6 @@ function update_conductor()
 		--layer with sound
 		--sound fx for call is always in 41, using sfx in 1
 		put_basketbeats_in_pattern(0,41,true)
-		--put_basket_start_beats_in_pattern(5,41,true) --accent start of syllables /didnt work out
-
 
 
 	end
