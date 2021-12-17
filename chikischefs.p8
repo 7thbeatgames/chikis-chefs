@@ -1060,14 +1060,13 @@ function update_conductor()
 	-- 0 [12] [34] [56] [78] || [9 10] [11 12] ..
 
 	-- make a stat 54 adj thats input offset adjusted
-	if (stat50_adj() > 0 and stat50_adj() < 6 and flag54 == true) then
+	--[[if (stat50_adj() > 0 and stat50_adj() < 6 and flag54 == true) then
 		flag54 = false 
 		stat54_adj = stat(54)
 	end
-
 	if (stat50_adj() > 6) then
 	flag54 = true
-	end
+	end--]]
 	-- end of stat54 adj, unused cause turns out the visual offset looks best at 0 already
 
 	local sm = stat(54)-1
