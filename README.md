@@ -8,8 +8,11 @@ Enjoy!
 Credits:
 
 Hafiz Azman: Design + Music (+ sync programming)
+
 Giacomo Preciado: Programming + Art
+
 Winston Lee: Art + Animations
+
 We are all part of [7th Beat Games](https://7thbe.at/)
 
 Special thanks:
