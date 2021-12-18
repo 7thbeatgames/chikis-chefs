@@ -10,12 +10,13 @@ __lua__
 -- not the way pico uses ticks, which is "every note in the tracker takes [sfx pattern speed] ticks" e.g. 16 ticks per note
 -- 1 pico tick = 183/22050 s
 
-testbug1 = true 
+testbug1 = false 
 -- testbug1: if
 -- 1) we are on the last set of side b
 -- 2) the basket's first fruit is *not* chirimoya/watermelon
 -- 3) the next basket's first fruit is chirimoya/watermelon
 -- then it will fail the last fruit of the basket early. why?????
+-- solved now
 
 mstate = 
 {
@@ -85,7 +86,7 @@ difficulty_selection = false
 cartdata("chikischefs")
 
 --outside to save between runs
-input_offset = 80 -- in ms
+input_offset = 90 -- in ms
 
 
 
@@ -212,7 +213,7 @@ function _update60()
 			if btnp(5) then
 				set_all_speeds(current_difficulty.speed)
 				if (testbug1) then
-				music(14) else
+				music(12) else
 				music() end
 				playing = true
 			end
@@ -328,8 +329,8 @@ function play_update()
 
 	-- missed beat
 	if music_state == mstate.response then
-		for i = #arr_basket_beats_results + 1, #arr_basket_beats do
-			b = arr_basket_beats[i]
+		for i = #arr_basket_beats_results + 1, #arr_basket_beats_show do
+			b = arr_basket_beats_show[i]
 			diff = tickf % 16 - b
 
 			if diff > 7 then
