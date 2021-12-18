@@ -600,12 +600,13 @@ function _draw()
 		end
 	end
 
-
-	--[[
-	allwon = true
+	--test case
+	--[[round  = 4
+	playing = true
+	won = true
 	current_difficulty_id = 4
-	current_difficulty = game_difficulties.very_hard_plus
-	--]]
+	current_difficulty = game_difficulties.very_hard_plus]]--
+	
 
 	if gameover == true then
 		print("game over!", 68,66, 7)
@@ -654,7 +655,7 @@ function _draw()
 	end	
 
 	-- draw score
-	if playing == true and gameover == false then
+	if playing == true and won == false and gameover == false and allwon == false then
 		if round == 0 then
 			print("follow the\n  rhythm!", 68, 67, 10)
 			print("press ❎ to\n   slice", 67, 90, 7)
@@ -1157,14 +1158,12 @@ function update_conductor()
 		-- put bunny's melody
 		local _ss = stat(54)
 		--but after 16 is 1 again, so imagine that its 0 when calculating the pattern in the next bar
-		if (_ss == 16) then _ss=0 end
 		-- 17+ : 17 should be treated as 1 again
-		if (_ss > 16) then
-			if _ss == 32 then 
-				_ss = 16 --wraparound again
-			else
-				_ss-=16
-			end
+		if (_ss > 15) then
+			if _ss > 31 then 
+				_ss -= 16 --wraparound 2x, cause next bars aim (_ss+3) is 3!
+			 end				
+			_ss-=16
 		end
 
 		put_basketbeats_in_pattern(5,_ss+3,true)
@@ -1232,14 +1231,12 @@ function update_conductor()
 		--put frogs melody
 		local _ss = stat(54)
 		--but after 16 is 1 again, so imagine that its 0 when calculating the pattern in the next bar
-		if (_ss == 16) then _ss=0 end
 		-- 17+ : 17 should be treated as 1 again
-		if (_ss > 16) then
-			if _ss == 32 then 
-				_ss = 16 --wraparound again
-			else
-				_ss-=16
-			end
+		if (_ss > 15) then
+			if _ss > 31 then 
+				_ss -= 16 --wraparound 2x, cause next bars aim (_ss+3) is 3!
+			 end				
+			_ss-=16
 		end
 
 		put_basketbeats_in_pattern(5,_ss+3,true)
