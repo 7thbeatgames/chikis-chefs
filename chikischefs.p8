@@ -10,6 +10,13 @@ __lua__
 -- not the way pico uses ticks, which is "every note in the tracker takes [sfx pattern speed] ticks" e.g. 16 ticks per note
 -- 1 pico tick = 183/22050 s
 
+testbug1 = true 
+-- testbug1: if
+-- 1) we are on the last set of side b
+-- 2) the basket's first fruit is *not* chirimoya/watermelon
+-- 3) the next basket's first fruit is chirimoya/watermelon
+-- then it will fail the last fruit of the basket early. why?????
+
 mstate = 
 {
 	intro = "intro",
@@ -204,7 +211,9 @@ function _update60()
 
 			if btnp(5) then
 				set_all_speeds(current_difficulty.speed)
-				music()
+				if (testbug1) then
+				music(14) else
+				music() end
 				playing = true
 			end
 		end
@@ -414,6 +423,7 @@ function play_update()
 			--^ this is imperfect cause it checks the starting syllables
 			-- also b is not the current beat but the supposed beat of the next slice, why?
 			-- quick hack to revert to prev if still alive
+			-- testbug1 unrelated to this, tested
 			if closestfruit > 1 and bubblefruits[closestfruit-1].lives > 0
 			and abs(bubblefruits[closestfruit-1].beat - b) < 6 --max 5 beats from starting syllable to end
 			then
@@ -1276,7 +1286,7 @@ function generate_fruit_basket(forcedfruit, _is_new_basket, _basketsize) --give 
 	local fruit_chosen_id
 	local fruit_chosen
 
-	while reroll == true do
+	while reroll == true  and testbug1 == false do
 		reroll = false
 		arr_basket = {}
 		local lastfruit_id = -1 //previous fruit id
@@ -1358,6 +1368,16 @@ function generate_fruit_basket(forcedfruit, _is_new_basket, _basketsize) --give 
 		elseif rest_num == 1 then
 			printh("added rest")
 		end
+	end
+
+
+	if (music_side_prebar == mside.b and testbug1) then
+		currentfruits = {fruits.orange,fruits.grape,fruits.chirimoya,fruits.watermelon,fruits.pineapple}
+		arr_basket = {1,2,2} --only happens when first is *not* chirimoya?
+	end
+
+	if (music_side_prebar == mside.a and testbug1) then
+		arr_basket = {3,3,3,3} --only happens when first is chirimoya?
 	end
 
 	if (_is_new_basket) then
