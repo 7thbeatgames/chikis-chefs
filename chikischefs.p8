@@ -420,51 +420,56 @@ function play_update()
 			closestfruit -= 1
 			end
 
+
 			-- hit correctly
-			if absdiff < hit_margin then  -- set in change_difficulty
-				printh("hit! " .. diff)
-				arr_basket_beats_results[nextbeat] = true -- i.e. adds array length!
-				bubblefruits[closestfruit].tglow = 0.1
 
-				-- change rabbit to happy if it wasn't angry
-				if rabbit_state == 0 then
-					rabbit_state = 2
-				end
+			-- error avoiding if scratch right when bubblefruits was reset
+			if #bubblefruits > 0 then
+				if absdiff < hit_margin then  -- set in change_difficulty
+					printh("hit! " .. diff)
+					arr_basket_beats_results[nextbeat] = true -- i.e. adds array length!
+					bubblefruits[closestfruit].tglow = 0.1
 
-				-- create slice
-				f = bubblefruits[closestfruit]
-				f.tfreeze = 0.2
-				f.lives = f.lives - 1
-				addslice(closestfruit)
+					-- change rabbit to happy if it wasn't angry
+					if rabbit_state == 0 then
+						rabbit_state = 2
+					end
+
+					-- create slice
+					f = bubblefruits[closestfruit]
+					f.tfreeze = 0.2
+					f.lives = f.lives - 1
+					addslice(closestfruit)
 
 
-				if #arr_basket_beats_results == #arr_basket_beats_show then
-					perfect_round = true
-					for i = 1, #arr_basket_beats_results do
-						if arr_basket_beats_results[i] == false then
-							perfect_round = false
+					if #arr_basket_beats_results == #arr_basket_beats_show then
+						perfect_round = true
+						for i = 1, #arr_basket_beats_results do
+							if arr_basket_beats_results[i] == false then
+								perfect_round = false
+							end
 						end
+
+						if perfect_round then
+							perfect_rounds_count = perfect_rounds_count + 1
+							-- sfx(33) disable cause no channels
+							dset(0, max(perfect_rounds_count, dget(0)))
+						end
+					else
+						perfect_round = false
 					end
 
-					if perfect_round then
-						perfect_rounds_count = perfect_rounds_count + 1
-						-- sfx(33) disable cause no channels
-						dset(0, max(perfect_rounds_count, dget(0)))
-					end
+
+				-- small miss
+				elseif absdiff < 7 then
+					printh("smallmiss.." .. diff)
+					rabbit_state = 1
+					arr_basket_beats_results[nextbeat] = false
+
+				-- no beats close
 				else
-					perfect_round = false
+					printh("nothing.." .. diff)
 				end
-
-
-			-- small miss
-			elseif absdiff < 7 then
-				printh("smallmiss.." .. diff)
-				rabbit_state = 1
-				arr_basket_beats_results[nextbeat] = false
-
-			-- no beats close
-			else
-				printh("nothing.." .. diff)
 			end
 		end
 	
@@ -596,6 +601,12 @@ function _draw()
 	end
 
 
+	--[[
+	allwon = true
+	current_difficulty_id = 4
+	current_difficulty = game_difficulties.very_hard_plus
+	--]]
+
 	if gameover == true then
 		print("game over!", 68,66, 7)
 		print("press ❎ to\n  restart", 66,80, 10)
@@ -603,12 +614,16 @@ function _draw()
 	elseif won == true then
 		print("nicely done!", 65,66, 7)
 		print("press ❎ to\n continue", 66,80, 10)
-		print("score: " .. perfect_rounds_count, 62, 101, 7)
+		print("score: " .. perfect_rounds_count, 62, 96, 7)
+		if (current_difficulty_id > 3) then
+		print("(" .. current_difficulty.name .. ")", 62, 102) end
 	elseif allwon == true then
-		print("you are\namazing!", 72,64, 7)
-		print("press ❎ to\n continue", 66,80, 10)
+		print("you are\namazing!", 72,60, 7)
+		print("press ❎ to\n continue", 66,76, 10)
 		color = perfect_rounds_count == 32 and 10 or 7
-		print("score: " .. perfect_rounds_count, 62, 101, color)
+		print("score: " .. perfect_rounds_count, 62, 96, color)
+		if (current_difficulty_id > 3) then
+		print("(" .. current_difficulty.name .. ")", 62, 102) end
 	elseif playing == false then
 		if not difficulty_selection then
 		print("chiki's chefs", 62,62, 7)
