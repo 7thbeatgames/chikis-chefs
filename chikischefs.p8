@@ -10,6 +10,13 @@ __lua__
 -- not the way pico uses ticks, which is "every note in the tracker takes [sfx pattern speed] ticks" e.g. 16 ticks per note
 -- 1 pico tick = 183/22050 s
 
+-- dsets
+-- 0 = high score
+-- 1 = last score (pass to ending.p8)
+-- 2 = last level reached
+-- 3 = difficulty.name
+-- 11-20 = fruit array (as id numbers)
+
 testbug1 = false 
 -- testbug1: if
 -- 1) we are on the last set of side b
@@ -17,6 +24,10 @@ testbug1 = false
 -- 3) the next basket's first fruit is chirimoya/watermelon
 -- then it will fail the last fruit of the basket early. why?????
 -- solved now
+
+fizzd_path = false -- alt path for multicart to work locally
+
+testwin = false
 
 mstate = 
 {
@@ -226,12 +237,38 @@ function _update60()
 			_init()
 		end
 
+		--test case
+		--[[score = 10
+		current_level = 5
+		allwon = true
+		currentfruits = {fruits.apple,fruits.orange, fruits.chirimoya, fruits.grape}]]--
+
+		-- assemble currentfruits into dsets
+
+		allfruits_arr = {fruits.grape,fruits.orange,fruits.apple,
+		fruits.papaya,fruits.banana,
+		fruits.pineapple, fruits.coconut,
+		fruits.watermelon,fruits.chirimoya, fruits.acaiberries}
+
+		for i=1,#currentfruits do
+		_ft = currentfruits[i]
+		for j=1,#allfruits_arr,1 do
+		 if _ft == allfruits_arr[j] then
+		 dset(i+10,j)
+		end
+		end
+		end
+
+		dset(1, perfect_rounds_count)
+		dset(2, current_level)
+		dset(3, current_difficulty_id)
+
 		if won then
-			load("ending.p8", "back to game", "won")
+			load(fizzd_path and "chikischefs/ending.p8" or "ending.p8", "back to game", "won")
 		end
 
 		if allwon then
-			load("ending.p8", "back to game", "allwon")
+			load("chikischefs/ending.p8", "back to game", "allwon")
 		end
 	end
 
@@ -614,11 +651,17 @@ function _draw()
 	end
 
 	--test case
-	--[[round  = 4
+	if (testwin) then
+	round  = 4
 	playing = true
 	won = true
 	current_difficulty_id = 4
-	current_difficulty = game_difficulties.very_hard_plus]]--
+	current_difficulty = game_difficulties.very_hard_plus
+	end
+
+	if (testwin) then
+	won = true 
+	end
 	
 
 	if gameover == true then
