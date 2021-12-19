@@ -237,11 +237,6 @@ function _update60()
 			_init()
 		end
 
-		--test case
-		--[[score = 10
-		current_level = 5
-		allwon = true
-		currentfruits = {fruits.apple,fruits.orange, fruits.chirimoya, fruits.grape}]]--
 
 		-- assemble currentfruits into dsets
 
@@ -249,6 +244,17 @@ function _update60()
 		fruits.papaya,fruits.banana,
 		fruits.pineapple, fruits.coconut,
 		fruits.watermelon,fruits.chirimoya, fruits.acaiberries}
+
+		--reset all dsets first
+		for i=1,10,1 do
+		 dset(i+10, 0)
+		end
+
+		--if not won all, remove last element of array first
+		-- seems to not work hmm
+		if (not allwon and #currentfruits > 1) then
+		deli(currentfruits)
+		end
 
 		for i=1,#currentfruits do
 		_ft = currentfruits[i]
@@ -654,13 +660,11 @@ function _draw()
 	if (testwin) then
 	round  = 4
 	playing = true
-	won = true
 	current_difficulty_id = 4
 	current_difficulty = game_difficulties.very_hard_plus
-	end
-
-	if (testwin) then
-	won = true 
+ 	won = true
+	current_level = 5
+	currentfruits = {fruits.apple,fruits.orange, fruits.chirimoya, fruits.grape}
 	end
 	
 
