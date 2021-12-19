@@ -213,7 +213,7 @@ function _update60()
 			if btnp(5) then
 				set_all_speeds(current_difficulty.speed)
 				if (testbug1) then
-				music(12) else
+				music(14) else
 				music() end
 				playing = true
 			end
@@ -286,7 +286,6 @@ function play_update()
 	-- end
 
 	-- appear bubble fruit
-	-- todo change to depend on rhythm
 
 	--check if current tickl is in the starting beat for a bubble
 	local flagg = false
@@ -304,13 +303,13 @@ function play_update()
 
 
 	--printh("tickl" .. tickl .. " -> flagg " .. (flagg and "true" or "false") .. " pos " .. pos .. "/ newtick " .. (newtick and "true" or "false") .. " #arr_basket_show " .. #arr_basket_show .. " intro? " .. (music_state ~= mstate.intro and "true" or "false"))
-	if flagg == true and newtick and calltime and #arr_basket_show > 0 and music_state ~= mstate.intro then
+	if flagg == true and newtick and calltime and #arr_basket > 0 and music_state ~= mstate.intro then
 		
 		--z = ceil(rnd(#allfruits - 1))
 		--pos = flr(tickl / 4) --
 		--printh(arr_basket_show)
 		--printh(pos)
-		ifruit = arr_basket_show[pos]
+		ifruit = arr_basket[pos]
 
 		--finds the starting beat of the first syllable of the fruits
 		beatpos = 1
@@ -1138,7 +1137,7 @@ function update_conductor()
 	--adjust for gameplay offset, so doesnt eat into the response pattern phase
 	-- minus so it happens later
 	-- flag_refreshed_newbar is start of call phase only
-	if(tickl >= 0 and tickl < 3 and flag_refreshed_newbar == true) then
+	if(tickl - get_offset_ticks()  >= 0 and tickl < 3 and flag_refreshed_newbar == true) then
 		flag_refreshed_newbar = false
 		arr_basket_beats_show = {}
 
