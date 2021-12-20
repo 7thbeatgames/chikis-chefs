@@ -105,7 +105,7 @@ function drawperfect()
 	if (endingtype == perfect) then
 	levelstr = "all levels completed!"
 	else
-	 levelstr = "levels completed: ".. (dget(2) - 1) .." of 5"
+	 levelstr = "levels completed: ".. (dget(2) - 1) .." of 4"
 	end
 
 	difficulties = {"very easy", "easy", "normal", "hard", "very hard" , "very hard+"}

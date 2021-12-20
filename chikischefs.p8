@@ -155,6 +155,7 @@ tgameover = 0
 music_state = mstate.intro
 
 current_level  = 0 -- increase every 4 rounds
+current_level_show = 0
 prev_level = 0
 round = 0 --rounds increase every call phase
 
@@ -174,6 +175,8 @@ flag_refreshed_newbar = true
 lives = maxlives
 
 currentfruits = {fruits.grape} --starting fruits
+currentfruits_show = {fruits.grape} --same but updated on bar
+
 slices = {}
 
 end
@@ -251,13 +254,17 @@ function _update60()
 			end
 
 			--if not won all, remove last element of array first
-			-- seems to not work hmm
-			if (not allwon and #currentfruits > 1) then
-			deli(currentfruits)
+			-- seems to not work hmm, oh yeah cause need to remove fruits.rest
+			-- oh yeah2 need to use a on bar updated version
+			_currentfruits = currentfruits_show
+			del(_currentfruits,fruits.rest)
+
+			if (not allwon and #_currentfruits > 1) then
+			deli(_currentfruits)
 			end
 
-			for i=1,#currentfruits do
-			_ft = currentfruits[i]
+			for i=1,#_currentfruits do
+			_ft = _currentfruits[i]
 			for j=1,#allfruits_arr,1 do
 			 if _ft == allfruits_arr[j] then
 			 dset(i+10,j)
@@ -266,7 +273,7 @@ function _update60()
 			end
 
 			dset(1, perfect_rounds_count)
-			dset(2, current_level)
+			dset(2, current_level_show)
 			dset(3, current_difficulty_id)
 		end
 
@@ -322,6 +329,11 @@ function play_update()
 
 	if newbar and calltime then
 		bubblefruits = {}
+	end
+
+	if newbar then
+		current_level_show = current_level
+		currentfruits_show = currentfruits
 	end
 
 
@@ -832,7 +844,7 @@ function _draw()
 
 	-- debug
 
-	-- printdebug()
+	printdebug()
 	-- drawresultsquares()
 
 
@@ -901,6 +913,9 @@ function printdebug()
 	print("tick " .. tick)
 	print("tickf ".. tickf)
 	print("sylaudio ".. sylaudio)
+	print("level: "..current_level)
+	print("level: "..current_level_show)
+
 
 end
 
