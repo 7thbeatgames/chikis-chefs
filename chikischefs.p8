@@ -179,6 +179,12 @@ currentfruits_show = {fruits.grape} --same but updated on bar
 
 slices = {}
 
+--load input offset from save data if available
+_input_offset = dget(60)
+if (_input_offset ~= 0) then
+	input_offset = _input_offset
+end
+
 end
 
 function reset()
@@ -217,8 +223,12 @@ function _update60()
 		if difficulty_selection == false then
 		--start screen + offset
 			if btnp(5) then difficulty_selection = true end
-			if btnp(0) then input_offset -= 5 end
-			if btnp(1) then input_offset += 5 end
+			if btnp(0) then input_offset -= 5
+			dset(60,input_offset)
+			end
+			if btnp(1) then input_offset += 5 then
+			dset(60,input_offset)
+			end
 		else
 		-- difficulty select screen
 			if btnp(0) then change_difficulty(false) end
