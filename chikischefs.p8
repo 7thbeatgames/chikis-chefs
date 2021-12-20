@@ -237,44 +237,45 @@ function _update60()
 			_init()
 		end
 
+		if won or allwon then
+			-- assemble currentfruits into dsets
 
-		-- assemble currentfruits into dsets
+			allfruits_arr = {fruits.grape,fruits.orange,fruits.apple,
+			fruits.papaya,fruits.banana,
+			fruits.pineapple, fruits.coconut,
+			fruits.watermelon,fruits.chirimoya, fruits.acaiberries}
 
-		allfruits_arr = {fruits.grape,fruits.orange,fruits.apple,
-		fruits.papaya,fruits.banana,
-		fruits.pineapple, fruits.coconut,
-		fruits.watermelon,fruits.chirimoya, fruits.acaiberries}
+			--reset all dsets first
+			for i=1,10,1 do
+			 dset(i+10, 0)
+			end
 
-		--reset all dsets first
-		for i=1,10,1 do
-		 dset(i+10, 0)
+			--if not won all, remove last element of array first
+			-- seems to not work hmm
+			if (not allwon and #currentfruits > 1) then
+			deli(currentfruits)
+			end
+
+			for i=1,#currentfruits do
+			_ft = currentfruits[i]
+			for j=1,#allfruits_arr,1 do
+			 if _ft == allfruits_arr[j] then
+			 dset(i+10,j)
+			end
+			end
+			end
+
+			dset(1, perfect_rounds_count)
+			dset(2, current_level)
+			dset(3, current_difficulty_id)
 		end
-
-		--if not won all, remove last element of array first
-		-- seems to not work hmm
-		if (not allwon and #currentfruits > 1) then
-		deli(currentfruits)
-		end
-
-		for i=1,#currentfruits do
-		_ft = currentfruits[i]
-		for j=1,#allfruits_arr,1 do
-		 if _ft == allfruits_arr[j] then
-		 dset(i+10,j)
-		end
-		end
-		end
-
-		dset(1, perfect_rounds_count)
-		dset(2, current_level)
-		dset(3, current_difficulty_id)
 
 		if won then
 			load(fizzd_path and "chikischefs/ending.p8" or "ending.p8", "back to game", "won")
 		end
 
 		if allwon then
-			load("chikischefs/ending.p8", "back to game", "allwon")
+			load(fizzd_path and "chikischefs/ending.p8" or "ending.p8", "back to game", "allwon")
 		end
 	end
 
