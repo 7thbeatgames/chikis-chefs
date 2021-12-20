@@ -844,7 +844,7 @@ function _draw()
 
 	-- debug
 
-	printdebug()
+	--printdebug()
 	-- drawresultsquares()
 
 
