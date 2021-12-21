@@ -98,7 +98,7 @@ cartdata("chikischefs")
 
 --outside to save between runs
 input_offset = 90 -- in ms
-
+input_offset_default = 90
 
 
 function _init()
@@ -226,13 +226,22 @@ function _update60()
 			if btnp(0) then input_offset -= 5
 			dset(60,input_offset)
 			end
-			if btnp(1) then input_offset += 5 then
+			if btnp(1) then
+			input_offset += 5
 			dset(60,input_offset)
 			end
+			if btnp(3) then
+			input_offset = input_offset_default
+			dset(60,input_offset)
+			end
+
+
 		else
 		-- difficulty select screen
 			if btnp(0) then change_difficulty(false) end
 			if btnp(1) then change_difficulty(true) end
+
+			if (btnp(4)) then difficulty_selection = false end
 
 			if btnp(5) then
 				set_all_speeds(current_difficulty.speed)
@@ -712,7 +721,7 @@ function _draw()
 		if not difficulty_selection then
 		print("chiki's chefs", 62,62, 7)
 		print("press ❎ to\n   start", 66,72, 10)
-		print("offset:\n⬅️ ".. input_offset.. " ms ➡️",62,87, 7)
+		print("offset:\n⬅️".. input_offset.. " ms➡️(⬇️)",62,87, 7)
 		hiscore = dget(0)
 		if hiscore == 32 then
 			color = time() % 1.0 < 0.5 and 10 or 9
