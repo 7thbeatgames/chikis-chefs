@@ -18,6 +18,10 @@ __lua__
 -- 11-20 = fruit array (as id numbers)
 
 testbug1 = false 
+testbug1_round = 30
+testbug1_level = 1
+
+godmode = false
 -- testbug1: if
 -- 1) we are on the last set of side b
 -- 2) the basket's first fruit is *not* chirimoya/watermelon
@@ -157,7 +161,7 @@ music_state = mstate.intro
 current_level  = 0 -- increase every 4 rounds
 current_level_show = 0
 prev_level = 0
-round = 0 --rounds increase every call phase
+round = testbug1 and testbug_round or 0 --rounds increase every call phase
 
 arr_basket = {}
 arr_basket_datum = {} --the motif of the round, set every 4 baskets
@@ -246,7 +250,9 @@ function _update60()
 			if btnp(5) then
 				set_all_speeds(current_difficulty.speed)
 				if (testbug1) then
-				music(14) else
+				music()
+				round = testbug1_round 
+				else
 				music() end
 				playing = true
 			end
@@ -420,7 +426,11 @@ function play_update()
 
 	-- game over
 	if gameover == false and won == false and allwon == false and newtick and tickl == 2 then
+		if (not testbug1 and not godmode) then
 		misses = max(0, (round - 1) - perfect_rounds_count)
+		else
+		 misses = 0
+		end
 		lives = maxlives - misses
 		printh("misses: " .. misses)
 		if misses >= maxlives then
@@ -701,7 +711,10 @@ function _draw()
 	current_level = 5
 	currentfruits = {fruits.apple,fruits.orange, fruits.chirimoya, fruits.grape}
 	end
-	
+
+	if (testbug1) then
+	current_level = testbug1_level
+	end
 
 	if gameover == true then
 		print("game over!", 68,66, 7)
@@ -866,7 +879,8 @@ function _draw()
 
 	-- debug
 
-	--printdebug()
+if (testbug1) then
+	printdebug() end
 	-- drawresultsquares()
 
 
@@ -1470,6 +1484,12 @@ function generate_fruit_basket(forcedfruit, _is_new_basket, _basketsize) --give 
 		arr_basket = {3,3,3,3} --only happens when first is chirimoya?
 	end
 
+	if (allwon_prebar) then 
+		add(currentfruits,fruits.cherry)
+		local c = #currentfruits
+		arr_basket = {c,c,c,c} 
+	end
+
 	if (_is_new_basket) then
 		arr_basket_datum = {}
 		for j = 1, #arr_basket do
@@ -1482,6 +1502,11 @@ end
 function generate_beats_from_basket() --arr_basket unboxing to give array of beats
 	arr_basket_beats = {}
 	arr_basket_start_beats = {} -- beats of the first syllable
+
+	if (testbug1) then
+	arr_basket = {1}
+	currentfruits = {fruits.grape}
+	end
 
 	for i = 1,#arr_basket do -- cause sub is 1-indexed!
 		--printh("str basket is " .. arr_basket)
@@ -1741,6 +1766,17 @@ fruits =
 		notes = {},
 		maincolor = 0
 	},
+	cherry = {
+		name = "cherry",
+		syllables = {"cherry"},
+		size = {x = 1, y = 1},
+		slicesize = {x = 1, y = 1},
+		sprite = 86,
+		slicesprite = 22,
+		bottom = 0,
+		notes = {1},
+		maincolor = 13
+	}
 }
 
 
@@ -1804,12 +1840,12 @@ __gfx__
 000000000000000009999999999999999999999077707600000000000000000000000000000000000000000000affa0007000000000000000000007000000000
 22222222222222222222222222222222222222222222222200000000000000000000000000000000000050000000500000000000000000000000000000000000
 22222222222222222222222222222222222222222222222200000000000333000000000000000000099affa00affa99000700000000000070000000000000700
-2222222222222222222222222222222222222222222222220000000000303330003330000000000099af99faaf99fa9900070000077770070000000000007000
-2277cccc22222222222222222222222222222222ccccccc2000000000000033303333300000000009f99f97ff79f99f900007000700007070000000000070000
-2277cccccccccc2222222222222222222cccccccccccccc200000000000001d223333330000000009f99779ff97799f900000700700707077000700000700000
-2277ccccccccccccccccccccccccccccccccccccccccccc200000000000001111d200000000000009a9f9f9ff9f9f9a900000077700077077007000077000000
-2277ccccccccccccccccccccccccccccccccccccccccccc200000000000d1dd2222120000000000099af99faaf99fa9900000077700007777077000777000000
-22277ccccccccccccccccccccccccccccccccccccccccc2200000000000212221111200000000000099aafa00afaa99000000007777777000770077770000000
+2222222222222222222222222222222222222222222222220000500000303330003330000000000099af99faaf99fa9900070000077770070000000000007000
+2277cccc22222222222222222222222222222222ccccccc2000500000000033303333300000000009f99f97ff79f99f900007000700007070000000000070000
+2277cccccccccc2222222222222222222cccccccccccccc200010000000001d223333330000000009f99779ff97799f900000700700707077000700000700000
+2277ccccccccccccccccccccccccccccccccccccccccccc2008ef000000001111d200000000000009a9f9f9ff9f9f9a900000077700077077007000077000000
+2277ccccccccccccccccccccccccccccccccccccccccccc200288000000d1dd2222120000000000099af99faaf99fa9900000077700007777077000777000000
+22277ccccccccccccccccccccccccccccccccccccccccc2200228000000212221111200000000000099aafa00afaa99000000007777777000770077770000000
 44477ccccccccccccccccccccccccccccccccccccccccc4400000000000112221211100000000000000000000000000000000000777000000000777700000000
 44447cccccccccccccccccccccccccccccccccccccccc44400000000000021111212000000000000000000000000000000000000070000000000777700000000
 444477ccccccccccccccccccccccccccccccccccccccc44400000000000022211112000000000000000000000000000000000000700000000007000770007000
