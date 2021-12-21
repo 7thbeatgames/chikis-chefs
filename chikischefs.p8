@@ -189,6 +189,8 @@ if (_input_offset ~= 0) then
 	input_offset = _input_offset
 end
 
+str_last_margin = ""
+
 end
 
 function reset()
@@ -211,9 +213,9 @@ function change_difficulty(_increase)
 	current_speed = current_difficulty.speed
 
 	if current_difficulty_id < 3 then
-	 hit_margin = 0.95
+	 hit_margin = 1
 	else
-	 hit_margin = 0.8
+	 hit_margin = 0.85
 	end
 end
 
@@ -419,6 +421,7 @@ function play_update()
 			if diff > 7 then
 				arr_basket_beats_results[i] = false
 				printh("bigmiss..")
+				str_last_margin = "miss!"
 				rabbit_state = 1
 			end
 		end
@@ -564,6 +567,8 @@ function play_update()
 
 				-- small miss
 				elseif absdiff < 7 then
+					if (diff < 0 ) then str_last_margin = "late!"
+					else str_last_margin = "early!" end
 					printh("smallmiss.." .. diff)
 					rabbit_state = 1
 					arr_basket_beats_results[nextbeat] = false
@@ -768,7 +773,11 @@ function _draw()
 			print("follow the\n  rhythm!", 68, 67, 10)
 			print("press ❎ to\n   slice", 67, 90, 7)
 		else
+			if (music_state ~= mstate.response) then
 			print("score: " .. perfect_rounds_count, 62, 101, 7)
+			else
+			 print(str_last_margin, 62, 101, 7)
+			end
 		end
 		
 	end
@@ -1239,6 +1248,7 @@ function update_conductor()
 	if(tickl - get_offset_ticks()  >= 0 and tickl < 3 and flag_refreshed_newbar == true) then
 		flag_refreshed_newbar = false
 		arr_basket_beats_show = {}
+		str_last_margin = ""
 
 		for i = 1, #arr_basket_beats do
 			arr_basket_beats_show[i] = arr_basket_beats[i]
