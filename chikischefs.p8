@@ -511,12 +511,12 @@ function play_update()
 
 			-- hit correctly
 
-			-- error avoiding if scratch right when bubblefruits was reset
-			if #bubblefruits > 0 then
 				if absdiff < hit_margin then  -- set in change_difficulty
 					printh("hit! " .. diff)
 					arr_basket_beats_results[nextbeat] = true -- i.e. adds array length!
-					bubblefruits[closestfruit].tglow = 0.1
+					
+					if #bubblefruits > 0 then
+					bubblefruits[closestfruit].tglow = 0.1 end
 
 					-- change rabbit to happy if it wasn't angry
 					if rabbit_state == 0 then
@@ -524,10 +524,14 @@ function play_update()
 					end
 
 					-- create slice
-					f = bubblefruits[closestfruit]
-					f.tfreeze = 0.2
-					f.lives = f.lives - 1
-					addslice(closestfruit)
+					-- error avoiding if scratch right when bubblefruits was reset
+					-- (cause bubblefruits is reset without offset adjustment)
+					if #bubblefruits > 0 then
+						f = bubblefruits[closestfruit]
+						f.tfreeze = 0.2
+						f.lives = f.lives - 1
+						addslice(closestfruit)
+					end
 
 
 					if #arr_basket_beats_results == #arr_basket_beats_show then
@@ -558,7 +562,6 @@ function play_update()
 				else
 					printh("nothing.." .. diff)
 				end
-			end
 		end
 	
 	end
